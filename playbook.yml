@@ -8,34 +8,9 @@
       docker_image_info:
         name: ubuntu:18.04
       register: result
+      check_mode: no
 
     - when: not result.images or force is true
       vars:
         force: True
-      block:
-        - name: docker pull
-          command: docker pull ubuntu:18.04
-          delegate_to: localhost
-        - name: docker save
-          command: docker save ubuntu:18.04 -o /tmp/ubuntu18.04.tar
-          delegate_to: localhost
-        - name: chmod
-          file:
-            path: /tmp/ubuntu18.04.tar
-            mode: 0644
-          delegate_to: localhost
-        - name: copy tar
-          copy:
-            src: /tmp/ubuntu18.04.tar
-            dest: /tmp/ubuntu18.04.tar
-        - name: docker load
-          command: docker load -i /tmp/ubuntu18.04.tar
-        - name: rm tar on remote
-          file:
-            path: /tmp/ubuntu18.04.tar
-            state: absent
-        - name: rm tar on localhost
-          file:
-            path: /tmp/ubuntu18.04.tar
-            state: absent
-          delegate_to: localhost
+      import_tasks: transfer_docker_image.yml
